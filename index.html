@@ -43,7 +43,6 @@
 
       <div class="buttons">
         <button id="startStop" type="button">Start</button>
-        <button id="reset" type="button">Reset</button>
         <button id="clearAll" type="button">Clear All</button>
       </div>
 
@@ -51,15 +50,13 @@
       <ul id="log"></ul>
       <p id="emptyState" class="empty-state">No sessions yet. Start the timer to log your work.</p>
 
-      <!-- Ads (simulated) -->
-      <div class="ads" id="ads" aria-live="polite"></div>
+      <!-- Ads (simulated) -->\n      <!-- AdSense placeholder: to enable real Google AdSense, insert your AdSense script and publisher ad slot here. Example: -->\n      <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_PUB_ID" crossorigin="anonymous"></script> -->\n      <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="YOUR_PUB_ID" data-ad-slot="YOUR_SLOT" data-ad-format="auto"></ins> -->\n      <!-- <script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->\n      <div class="ads" id="ads" aria-live="polite"></div>
 
       <script>
         document.addEventListener("DOMContentLoaded", function() {
           let timer; let seconds = 0; let running = false;
           const timerLabel = document.getElementById("timer");
           const startStopButton = document.getElementById("startStop");
-          const resetButton = document.getElementById("reset");
           const clearAllButton = document.getElementById("clearAll");
           const sessionNameInput = document.getElementById("sessionName");
           const logList = document.getElementById("log");
@@ -150,10 +147,7 @@
             });
           }
 
-          function updateAdsFromSessions() {
-            // prefer latest session name when available
-            const sessions = getSessions();
-            if (!sessions.length) { adsContainer.innerHTML = ""; return; }
+          function updateAdsFromSessions() {\n            const sessions = getSessions();\n            if (!sessions.length) { adsContainer.innerHTML = ""; return; }\n            const combined = sessions.map(s => s.label).join(" ");\n            updateAds(combined);\n          }
             const latest = sessions[sessions.length-1].label || '';
             updateAds(latest);
           }
@@ -169,8 +163,6 @@
 
           startStopButton.addEventListener("click", function() { if (running) { clearInterval(timer); startStopButton.textContent = "Start"; running = false; logSession(seconds, sessionNameInput.value); seconds = 0; timerLabel.textContent = "00:00:00"; sessionNameInput.value = ""; } else { timer = setInterval(function() { seconds++; timerLabel.textContent = formatTime(seconds); }, 1000); startStopButton.textContent = "Stop"; running = true; sessionNameInput.focus(); } });
 
-          resetButton.addEventListener("click", function() { clearInterval(timer); seconds = 0; running = false; timerLabel.textContent = "00:00:00"; startStopButton.textContent = "Start"; });
-
           clearAllButton.addEventListener("click", clearAllSessions);
 
           // update ads as the user types
@@ -182,3 +174,4 @@
     </div>
   </body>
 </html>
+

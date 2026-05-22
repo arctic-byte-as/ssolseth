@@ -21,7 +21,7 @@ This repository uses a persona-based collaboration agent setup to iterate on the
 ## Project scope
 - A simple Time Tracker web app with:
   - a visible timer
-  - start/stop and reset controls
+    - start/stop controls (reset button removed)
   - a session name input
   - a local storage session log
 - Current improvement areas include:
@@ -33,3 +33,8 @@ This repository uses a persona-based collaboration agent setup to iterate on the
 - Engineering: fix broken behaviors, improve code structure, preserve simplicity
 - UX: improve labels, feedback, readability, and session log clarity
 - Iteration: make changes that are easy to review and validate on the existing page
+
+## Ads / Monetization
+- The repo includes a simulated ad section that shows curated ads based on session log content.
+- To prepare for Google AdSense: add your AdSense `client`/`slot` script into the HTML where the placeholder comments are in `index.html`, register the site with AdSense, and follow AdSense policy (do not serve sexual or illegal content).
+- Note: real AdSense requires adding the official script and verifying your publisher account; the current implementation is a safe simulation only.
