@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Tracker</title>
+    <title>Time Tracker (fixed)</title>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body { font-family: Arial, sans-serif; background-color: #1a1a2e; color: #eee; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
@@ -44,10 +44,6 @@
       <p id="emptyState" class="empty-state">No sessions yet. Start the timer to log your work.</p>
 
       <!-- Ads (simulated) -->
-      <!-- AdSense placeholder: to enable real Google AdSense, insert your AdSense script and publisher ad slot here. Example: -->
-      <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_PUB_ID" crossorigin="anonymous"></script> -->
-      <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="YOUR_PUB_ID" data-ad-slot="YOUR_SLOT" data-ad-format="auto"></ins> -->
-      <!-- <script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->
       <div class="ads" id="ads" aria-live="polite"></div>
 
       <script>
@@ -90,19 +86,15 @@
 
           function updateAds(query){ adsContainer.innerHTML=''; const ads=findAdsForQuery(query); if(!ads.length) return; ads.forEach(ad=>{ const item=document.createElement('div'); item.className='ad-item'; const title=document.createElement('div'); title.className='ad-title'; title.textContent=ad.title; const desc=document.createElement('div'); desc.className='ad-desc'; desc.textContent=ad.desc; const cta=document.createElement('a'); cta.className='ad-cta'; cta.textContent='View'; cta.href=ad.url; cta.target='_blank'; cta.rel='noopener'; item.append(title, desc, cta); adsContainer.appendChild(item); }); }
 
-          // Use combined session log content (labels) to drive ads
           function updateAdsFromSessions(){ const sessions = getSessions(); const combined = sessions.map(s=>s.label).join(' '); updateAds(combined); }
 
-          // Timer controls
           function tick(){ seconds++; timerLabel.textContent = formatTime(seconds); }
           startStopButton.addEventListener('click', ()=>{
-            if(!running){ running=true; startStopButton.textContent='Stop'; timerId = setInterval(tick,1000); } else { // stop and log
-              running=false; startStopButton.textContent='Start'; clearInterval(timerId); const label = (sessionNameInput.value||'').trim() || 'Unnamed session'; const time = new Date().toLocaleString(); const duration = formatTime(seconds); const sessions = getSessions(); sessions.unshift({ label, time, duration }); saveSessions(sessions); seconds = 0; timerLabel.textContent = formatTime(0); sessionNameInput.value=''; renderSessions(); }
+            if(!running){ running=true; startStopButton.textContent='Stop'; timerId = setInterval(tick,1000); } else { running=false; startStopButton.textContent='Start'; clearInterval(timerId); const label = (sessionNameInput.value||'').trim() || 'Unnamed session'; const time = new Date().toLocaleString(); const duration = formatTime(seconds); const sessions = getSessions(); sessions.unshift({ label, time, duration }); saveSessions(sessions); seconds = 0; timerLabel.textContent = formatTime(0); sessionNameInput.value=''; renderSessions(); }
           });
 
           clearAllButton.addEventListener('click', clearAllSessions);
 
-          // initial render
           renderSessions();
         });
       </script>
