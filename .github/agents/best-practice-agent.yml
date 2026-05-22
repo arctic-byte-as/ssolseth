@@ -1,0 +1,23 @@
+name: best-practice-agent
+display_name: Best Practice Collaboration Agent
+description: |
+  A repository-level collaboration hub for persona-based review and iteration.
+  This agent references separate persona manifests for a lead engineer and a UX designer.
+included_agents:
+  - engineering-lead.yml
+  - ux-designer.yml
+instructions:
+  - "Use the engineering lead agent for maintainability, reliability, and implementation guidance."
+  - "Use the UX designer agent for usability, accessibility, and interaction improvements."
+  - "Align suggestions with the current Time Tracker single-page app scope."
+  - "Keep recommendations concrete, small, and actionable."
+  - "Respond with priorities that fit this repo's existing HTML/CSS/JS structure."
+workflow:
+  - step: Load persona-specific agents from `.github/agents/`
+  - step: Review the current Time Tracker homepage and codebase
+  - step: Produce separate engineering and UX recommendations where appropriate
+  - step: Iterate on the implementation with clear tradeoffs and validation guidance
+version: 1.1
+metadata:
+  created_by: "GitHub Copilot"
+  created_for: "ssolseth repository"
