@@ -5,148 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Time Tracker</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #1a1a2e;
-        color: #eee;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-      }
-
-      .container {
-        background-color: #16213e;
-        border-radius: 16px;
-        padding: 32px;
-        width: 100%;
-        max-width: 620px;
-        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
-      }
-
-      h1 {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-        color: #e94560;
-        text-align: center;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-
-      #timer {
-        font-size: 4rem;
-        font-weight: bold;
-        text-align: center;
-        color: #ffffff;
-        letter-spacing: 0.1rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .form-group {
-        margin-bottom: 1rem;
-      }
-
-      input[type="text"], input.edit-input {
-        width: 100%;
-        padding: 14px 16px;
-        border-radius: 10px;
-        border: 2px solid #0f3460;
-        background-color: #0f3460;
-        color: #eee;
-        font-size: 1rem;
-        outline: none;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-      }
-
-      input[type="text"]:focus,
-      input.edit-input:focus {
-        border-color: #e94560;
-        box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.18);
-      }
-
-      .buttons {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-bottom: 1.5rem;
-      }
-
-      button {
-        padding: 14px 18px;
-        border: none;
-        border-radius: 10px;
-        background-color: #0f3460;
-        color: #eee;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: background 0.2s ease, transform 0.1s ease;
-        min-width: 120px;
-      }
-
-      button:hover,
-      button:focus {
-        background-color: #16213e;
-        outline: none;
-        transform: translateY(-1px);
-      }
-
-      button:active {
-        transform: translateY(0);
-      }
-
-      button.delete-btn {
-        background-color: #e94560;
-      }
-
-      button.delete-btn:hover,
-      button.delete-btn:focus {
-        background-color: #ff3b6f;
-      }
-
-      .session-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 14px;
-        background-color: #0f3460;
-      }
-
-      .log-text {
-        flex: 1;
-        font-size: 0.95rem;
-        line-height: 1.4;
-      }
-
-      .empty-state {
-        color: #a1a1c9;
-        font-size: 0.95rem;
-        text-align: center;
-        margin-top: 0.5rem;
-      }
-
-      @media (max-width: 520px) {
-        #timer {
-          font-size: 3rem;
-        }
-
-        .buttons {
-          flex-direction: column;
-        }
-
-        button {
-          width: 100%;
-        }
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; background-color: #1a1a2e; color: #eee; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+      .container { background-color: #16213e; border-radius: 16px; padding: 32px; width: 100%; max-width: 620px; box-shadow: 0 10px 35px rgba(0,0,0,0.35); }
+      h1 { font-size: 2rem; margin-bottom: 1rem; color: #e94560; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
+      #timer { font-size: 4rem; font-weight: bold; text-align: center; color: #ffffff; letter-spacing: 0.1rem; margin-bottom: 1.5rem; }
+      .form-group { margin-bottom: 1rem; }
+      input[type="text"], input.edit-input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 2px solid #0f3460; background-color: #0f3460; color: #eee; font-size: 1rem; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+      input[type="text"]:focus, input.edit-input:focus { border-color: #e94560; box-shadow: 0 0 0 4px rgba(233,69,96,0.18); }
+      .buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+      button { padding: 14px 18px; border: none; border-radius: 10px; background-color: #0f3460; color: #eee; cursor: pointer; font-size: 1rem; transition: background 0.2s ease, transform 0.1s ease; min-width: 120px; }
+      button:hover, button:focus { background-color: #16213e; outline: none; transform: translateY(-1px); }
+      button:active { transform: translateY(0); }
+      button.delete-btn { background-color: #e94560; }
+      button.delete-btn:hover, button.delete-btn:focus { background-color: #ff3b6f; }
+      .session-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border-radius: 14px; background-color: #0f3460; }
+      .log-text { flex: 1; font-size: 0.95rem; line-height: 1.4; }
+      .empty-state { color: #a1a1c9; font-size: 0.95rem; text-align: center; margin-top: 0.5rem; }
+      /* Ads section */
+      .ads { margin-top: 1.25rem; display: grid; gap: 0.75rem; }
+      .ad-item { display: flex; flex-direction: column; gap: 0.4rem; padding: 12px; border-radius: 10px; background: linear-gradient(180deg, #0f3460, #09203a); border: 1px solid rgba(255,255,255,0.04); }
+      .ad-title { font-weight: 700; color: #ffd97a; font-size: 0.98rem; }
+      .ad-desc { color: #dfe6ff; font-size: 0.9rem; }
+      .ad-cta { margin-top: 0.4rem; align-self: start; padding: 8px 12px; border-radius: 8px; background-color: #e94560; color: white; cursor: pointer; text-decoration: none; font-weight: 600; }
+      @media (max-width: 520px) { #timer { font-size: 3rem; } .buttons { flex-direction: column; } button { width: 100%; } }
     </style>
   </head>
   <body>
@@ -169,11 +51,12 @@
       <ul id="log"></ul>
       <p id="emptyState" class="empty-state">No sessions yet. Start the timer to log your work.</p>
 
+      <!-- Ads (simulated) -->
+      <div class="ads" id="ads" aria-live="polite"></div>
+
       <script>
         document.addEventListener("DOMContentLoaded", function() {
-          let timer;
-          let seconds = 0;
-          let running = false;
+          let timer; let seconds = 0; let running = false;
           const timerLabel = document.getElementById("timer");
           const startStopButton = document.getElementById("startStop");
           const resetButton = document.getElementById("reset");
@@ -181,156 +64,117 @@
           const sessionNameInput = document.getElementById("sessionName");
           const logList = document.getElementById("log");
           const emptyState = document.getElementById("emptyState");
+          const adsContainer = document.getElementById("ads");
+
+          // Small curated ad database (simulated). Real Google Ads integration requires AdSense/Ads account and scripts.
+          const adsDB = [
+            { id: 1, keywords: ["design","ux","ui"], title: "Flexible UX Courses", desc: "Learn practical UX design—short courses for busy teams.", url: "https://example.com/ux-courses" },
+            { id: 2, keywords: ["meeting","call","standup"], title: "Smart Meeting Tools", desc: "Run focused meetings with agendas and timers.", url: "https://example.com/meeting-tools" },
+            { id: 3, keywords: ["coding","dev","development","engineer"], title: "Cloud IDE — 50% off", desc: "Code from anywhere with instant dev environments.", url: "https://example.com/cloud-ide" },
+            { id: 4, keywords: ["writing","blog","docs"], title: "AI Writer Pro", desc: "Write docs 10x faster with guided templates.", url: "https://example.com/ai-writer" },
+            { id: 5, keywords: ["coffee","break","focus"], title: "Focus Coffee Subscription", desc: "Curated blends to keep you focused during sessions.", url: "https://example.com/coffee" }
+          ];
+
+          const blacklist = ["sex","porn","illegal","drugs","weapon","crime"];
 
           function formatTime(totalSeconds) {
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
-            return String(hours).padStart(2, "0") + ":" +
-                   String(minutes).padStart(2, "0") + ":" +
-                   String(seconds).padStart(2, "0");
+            return String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
           }
 
-          function getSessions() {
-            return JSON.parse(localStorage.getItem("sessions") || "[]");
-          }
-
-          function saveSessions(sessions) {
-            localStorage.setItem("sessions", JSON.stringify(sessions));
-          }
-
-          function refreshEmptyState() {
-            emptyState.style.display = logList.children.length ? "none" : "block";
-          }
+          function getSessions() { return JSON.parse(localStorage.getItem("sessions") || "[]"); }
+          function saveSessions(sessions) { localStorage.setItem("sessions", JSON.stringify(sessions)); }
+          function refreshEmptyState() { emptyState.style.display = logList.children.length ? "none" : "block"; }
 
           function renderSessions() {
             logList.innerHTML = "";
             getSessions().forEach((session, index) => displaySession(session, index));
             refreshEmptyState();
+            updateAdsFromSessions();
           }
 
           function displaySession(session, index) {
-            const li = document.createElement("li");
-            li.className = "session-item";
-
-            const text = document.createElement("span");
-            text.className = "log-text";
+            const li = document.createElement("li"); li.className = "session-item";
+            const text = document.createElement("span"); text.className = "log-text";
             text.textContent = `${session.label} — stopped at ${session.time} — Duration: ${session.duration}`;
 
-            const editBtn = document.createElement("button");
-            editBtn.type = "button";
-            editBtn.textContent = "Edit";
-            editBtn.className = "edit-btn";
+            const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.textContent = "Edit"; editBtn.className = "edit-btn";
             editBtn.addEventListener("click", function() {
-              const input = document.createElement("input");
-              input.type = "text";
-              input.value = session.label;
-              input.className = "edit-input";
-
-              const saveBtn = document.createElement("button");
-              saveBtn.type = "button";
-              saveBtn.textContent = "Save";
-              saveBtn.className = "save-btn";
-
-              const cancelBtn = document.createElement("button");
-              cancelBtn.type = "button";
-              cancelBtn.textContent = "Cancel";
-              cancelBtn.className = "cancel-btn";
-
-              li.innerHTML = "";
-              li.append(input, saveBtn, cancelBtn);
-
-              saveBtn.addEventListener("click", function() {
-                updateSessionName(index, input.value);
-              });
-
-              cancelBtn.addEventListener("click", function() {
-                renderSessions();
-              });
+              const input = document.createElement("input"); input.type = "text"; input.value = session.label; input.className = "edit-input";
+              const saveBtn = document.createElement("button"); saveBtn.type = "button"; saveBtn.textContent = "Save";
+              const cancelBtn = document.createElement("button"); cancelBtn.type = "button"; cancelBtn.textContent = "Cancel";
+              li.innerHTML = ""; li.append(input, saveBtn, cancelBtn);
+              saveBtn.addEventListener("click", function() { updateSessionName(index, input.value); });
+              cancelBtn.addEventListener("click", function() { renderSessions(); });
             });
 
-            const deleteBtn = document.createElement("button");
-            deleteBtn.type = "button";
-            deleteBtn.textContent = "Delete";
-            deleteBtn.className = "delete-btn";
-            deleteBtn.addEventListener("click", function() {
-              deleteSession(index);
-            });
+            const deleteBtn = document.createElement("button"); deleteBtn.type = "button"; deleteBtn.textContent = "Delete"; deleteBtn.className = "delete-btn";
+            deleteBtn.addEventListener("click", function() { deleteSession(index); });
 
             li.append(text, editBtn, deleteBtn);
             logList.appendChild(li);
           }
 
-          function deleteSession(index) {
-            const sessions = getSessions();
-            if (index < 0 || index >= sessions.length) return;
-            sessions.splice(index, 1);
-            saveSessions(sessions);
-            renderSessions();
+          function deleteSession(index) { const sessions = getSessions(); if (index < 0 || index >= sessions.length) return; sessions.splice(index, 1); saveSessions(sessions); renderSessions(); }
+          function updateSessionName(index, newName) { const sessions = getSessions(); if (index < 0 || index >= sessions.length) return; sessions[index].label = newName.trim() || "Unnamed session"; saveSessions(sessions); renderSessions(); }
+          function clearAllSessions() { const sessions = getSessions(); if (!sessions.length) return; const message = "Clear all sessions? This will remove every logged session and cannot be undone."; if (window.confirm(message)) { saveSessions([]); renderSessions(); } }
+
+          // Ads logic: pick relevant ads from adsDB based on query (session name or combined sessions)
+          function matchesBlacklist(text) { const t = (text||"").toLowerCase(); return blacklist.some(b => t.includes(b)); }
+
+          function findAdsForQuery(query, max=3) {
+            if (!query || matchesBlacklist(query)) return [];
+            const q = query.toLowerCase();
+            const matches = [];
+            adsDB.forEach(ad => {
+              for (const k of ad.keywords) {
+                if (q.includes(k) || k.includes(q)) { matches.push(ad); break; }
+              }
+            });
+            return matches.slice(0,max);
           }
 
-          function updateSessionName(index, newName) {
-            const sessions = getSessions();
-            if (index < 0 || index >= sessions.length) return;
-            sessions[index].label = newName.trim() || "Unnamed session";
-            saveSessions(sessions);
-            renderSessions();
+          function updateAds(query) {
+            adsContainer.innerHTML = "";
+            const ads = findAdsForQuery(query);
+            if (!ads.length) { adsContainer.innerHTML = ""; return; }
+            ads.forEach(ad => {
+              const item = document.createElement('div'); item.className = 'ad-item';
+              const title = document.createElement('div'); title.className = 'ad-title'; title.textContent = ad.title;
+              const desc = document.createElement('div'); desc.className = 'ad-desc'; desc.textContent = ad.desc;
+              const cta = document.createElement('a'); cta.className = 'ad-cta'; cta.textContent = 'Visit'; cta.href = ad.url; cta.target = '_blank'; cta.rel = 'noopener';
+              item.append(title, desc, cta);
+              adsContainer.appendChild(item);
+            });
           }
 
-          function clearAllSessions() {
+          function updateAdsFromSessions() {
+            // prefer latest session name when available
             const sessions = getSessions();
-            if (!sessions.length) return;
-            const message = "Clear all sessions? This will remove every logged session and cannot be undone.";
-            if (window.confirm(message)) {
-              saveSessions([]);
-              renderSessions();
-            }
+            if (!sessions.length) { adsContainer.innerHTML = ""; return; }
+            const latest = sessions[sessions.length-1].label || '';
+            updateAds(latest);
           }
 
           function logSession(duration, name) {
             if (duration === 0) return;
             const label = name.trim() || "Unnamed session";
-            const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            const session = {
-              label,
-              time,
-              duration: formatTime(duration)
-            };
-            const sessions = getSessions();
-            sessions.push(session);
-            saveSessions(sessions);
-            renderSessions();
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (matchesBlacklist(label)) return; // do not log blacklisted content
+            const session = { label, time, duration: formatTime(duration) };
+            const sessions = getSessions(); sessions.push(session); saveSessions(sessions); renderSessions();
           }
 
-          startStopButton.addEventListener("click", function() {
-            if (running) {
-              clearInterval(timer);
-              startStopButton.textContent = "Start";
-              running = false;
-              logSession(seconds, sessionNameInput.value);
-              seconds = 0;
-              timerLabel.textContent = "00:00:00";
-              sessionNameInput.value = "";
-            } else {
-              timer = setInterval(function() {
-                seconds++;
-                timerLabel.textContent = formatTime(seconds);
-              }, 1000);
-              startStopButton.textContent = "Stop";
-              running = true;
-              sessionNameInput.focus();
-            }
-          });
+          startStopButton.addEventListener("click", function() { if (running) { clearInterval(timer); startStopButton.textContent = "Start"; running = false; logSession(seconds, sessionNameInput.value); seconds = 0; timerLabel.textContent = "00:00:00"; sessionNameInput.value = ""; } else { timer = setInterval(function() { seconds++; timerLabel.textContent = formatTime(seconds); }, 1000); startStopButton.textContent = "Stop"; running = true; sessionNameInput.focus(); } });
 
-          resetButton.addEventListener("click", function() {
-            clearInterval(timer);
-            seconds = 0;
-            running = false;
-            timerLabel.textContent = "00:00:00";
-            startStopButton.textContent = "Start";
-          });
+          resetButton.addEventListener("click", function() { clearInterval(timer); seconds = 0; running = false; timerLabel.textContent = "00:00:00"; startStopButton.textContent = "Start"; });
 
           clearAllButton.addEventListener("click", clearAllSessions);
+
+          // update ads as the user types
+          sessionNameInput.addEventListener('input', function(e){ const q = e.target.value || ''; updateAds(q); });
 
           renderSessions();
         });
