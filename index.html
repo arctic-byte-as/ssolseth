@@ -53,7 +53,7 @@
         margin-bottom: 1rem;
       }
 
-      input[type="text"] {
+      input[type="text"], input.edit-input {
         width: 100%;
         padding: 14px 16px;
         border-radius: 10px;
@@ -65,7 +65,8 @@
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
-      input[type="text"]:focus {
+      input[type="text"]:focus,
+      input.edit-input:focus {
         border-color: #e94560;
         box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.18);
       }
@@ -108,19 +109,6 @@
       button.delete-btn:hover,
       button.delete-btn:focus {
         background-color: #ff3b6f;
-      }
-
-      h2 {
-        font-size: 1.2rem;
-        margin-top: 1.75rem;
-        margin-bottom: 0.85rem;
-      }
-
-      #log {
-        list-style: none;
-        padding: 0;
-        display: grid;
-        gap: 0.9rem;
       }
 
       .session-item {
@@ -174,6 +162,7 @@
       <div class="buttons">
         <button id="startStop" type="button">Start</button>
         <button id="reset" type="button">Reset</button>
+        <button id="clearAll" type="button">Clear All</button>
       </div>
 
       <h2>Session Log</h2>
@@ -188,6 +177,7 @@
           const timerLabel = document.getElementById("timer");
           const startStopButton = document.getElementById("startStop");
           const resetButton = document.getElementById("reset");
+          const clearAllButton = document.getElementById("clearAll");
           const sessionNameInput = document.getElementById("sessionName");
           const logList = document.getElementById("log");
           const emptyState = document.getElementById("emptyState");
@@ -227,6 +217,38 @@
             text.className = "log-text";
             text.textContent = `${session.label} — stopped at ${session.time} — Duration: ${session.duration}`;
 
+            const editBtn = document.createElement("button");
+            editBtn.type = "button";
+            editBtn.textContent = "Edit";
+            editBtn.className = "edit-btn";
+            editBtn.addEventListener("click", function() {
+              const input = document.createElement("input");
+              input.type = "text";
+              input.value = session.label;
+              input.className = "edit-input";
+
+              const saveBtn = document.createElement("button");
+              saveBtn.type = "button";
+              saveBtn.textContent = "Save";
+              saveBtn.className = "save-btn";
+
+              const cancelBtn = document.createElement("button");
+              cancelBtn.type = "button";
+              cancelBtn.textContent = "Cancel";
+              cancelBtn.className = "cancel-btn";
+
+              li.innerHTML = "";
+              li.append(input, saveBtn, cancelBtn);
+
+              saveBtn.addEventListener("click", function() {
+                updateSessionName(index, input.value);
+              });
+
+              cancelBtn.addEventListener("click", function() {
+                renderSessions();
+              });
+            });
+
             const deleteBtn = document.createElement("button");
             deleteBtn.type = "button";
             deleteBtn.textContent = "Delete";
@@ -235,7 +257,7 @@
               deleteSession(index);
             });
 
-            li.append(text, deleteBtn);
+            li.append(text, editBtn, deleteBtn);
             logList.appendChild(li);
           }
 
@@ -245,6 +267,24 @@
             sessions.splice(index, 1);
             saveSessions(sessions);
             renderSessions();
+          }
+
+          function updateSessionName(index, newName) {
+            const sessions = getSessions();
+            if (index < 0 || index >= sessions.length) return;
+            sessions[index].label = newName.trim() || "Unnamed session";
+            saveSessions(sessions);
+            renderSessions();
+          }
+
+          function clearAllSessions() {
+            const sessions = getSessions();
+            if (!sessions.length) return;
+            const message = "Clear all sessions? This will remove every logged session and cannot be undone.";
+            if (window.confirm(message)) {
+              saveSessions([]);
+              renderSessions();
+            }
           }
 
           function logSession(duration, name) {
@@ -289,6 +329,8 @@
             timerLabel.textContent = "00:00:00";
             startStopButton.textContent = "Start";
           });
+
+          clearAllButton.addEventListener("click", clearAllSessions);
 
           renderSessions();
         });
