@@ -15,8 +15,13 @@
       .buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
       button { padding: 10px 14px; border: none; border-radius: 10px; background-color: #0f3460; color: #eee; cursor: pointer; font-size: 0.95rem; }
       button.delete-btn { background-color: #e94560; }
-      .session-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem; border-radius: 12px; background-color: #0f3460; margin-bottom: 0.5rem; }
-      .log-text { flex: 1; font-size: 0.95rem; }
+      .session-item { display: flex; align-items: stretch; gap: 0.75rem; margin-bottom: 0.5rem; }
+      .session-left { flex: 1; padding: 12px; border-radius: 12px; background: linear-gradient(180deg,#0f3460,#09203a); color: #e6eef8; display:flex; flex-direction:column; justify-content:center; }
+      .session-right { width: 150px; padding: 12px; border-radius: 12px; background: linear-gradient(180deg,#e94560,#c63a52); color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+      .session-duration { font-weight:700; font-size:1rem; }
+      .session-meta { font-size:0.85rem; color: #d6d9f0; margin-top:6px; }
+      .session-actions { display:flex; gap:8px; margin-top:8px; }
+      .session-actions button{ padding:6px 8px; border-radius:8px; font-size:0.8rem; }
       .empty-state { color: #a1a1c9; font-size: 0.95rem; text-align: center; margin-top: 0.5rem; }
       .ads { margin-top: 1.25rem; display: grid; gap: 0.75rem; }
       .ad-item { display: flex; flex-direction: column; gap: 0.4rem; padding: 10px; border-radius: 10px; background: linear-gradient(180deg, #0f3460, #09203a); border: 1px solid rgba(255,255,255,0.04); }
@@ -75,7 +80,54 @@
 
           function renderSessions(){ logList.innerHTML=''; getSessions().forEach((s,i)=>displaySession(s,i)); refreshEmptyState(); updateAdsFromSessions(); }
 
-          function displaySession(session,index){ const li=document.createElement('li'); li.className='session-item'; const text=document.createElement('div'); text.className='log-text'; text.textContent = session.label + ' — stopped at ' + session.time + ' — Duration: ' + session.duration; const editBtn=document.createElement('button'); editBtn.type='button'; editBtn.textContent='Edit'; editBtn.addEventListener('click', ()=>{ const input=document.createElement('input'); input.type='text'; input.value=session.label; input.className='edit-input'; const save=document.createElement('button'); save.type='button'; save.textContent='Save'; const cancel=document.createElement('button'); cancel.type='button'; cancel.textContent='Cancel'; li.innerHTML=''; li.append(input, save, cancel); save.addEventListener('click', ()=>{ updateSessionName(index, input.value); }); cancel.addEventListener('click', ()=>{ renderSessions(); }); }); const deleteBtn=document.createElement('button'); deleteBtn.type='button'; deleteBtn.textContent='Delete'; deleteBtn.className='delete-btn'; deleteBtn.addEventListener('click', ()=>{ deleteSession(index); }); li.append(text, editBtn, deleteBtn); logList.appendChild(li); }
+          function displaySession(session,index){
+            const li = document.createElement('li');
+            li.className = 'session-item';
+
+            const left = document.createElement('div');
+            left.className = 'session-left';
+            const title = document.createElement('div');
+            title.textContent = session.label || 'Unnamed session';
+            const meta = document.createElement('div');
+            meta.className = 'session-meta';
+            meta.textContent = 'Stopped at ' + session.time;
+            left.appendChild(title);
+            left.appendChild(meta);
+
+            const right = document.createElement('div');
+            right.className = 'session-right';
+            const dur = document.createElement('div');
+            dur.className = 'session-duration';
+            dur.textContent = session.duration;
+
+            const actions = document.createElement('div');
+            actions.className = 'session-actions';
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button'; editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', ()=>{
+              const input = document.createElement('input'); input.type='text'; input.value = session.label; input.className='edit-input';
+              const save = document.createElement('button'); save.type='button'; save.textContent='Save';
+              const cancel = document.createElement('button'); cancel.type='button'; cancel.textContent='Cancel';
+              left.innerHTML = '';
+              left.append(input);
+              actions.innerHTML = '';
+              actions.append(save, cancel);
+              save.addEventListener('click', ()=>{ updateSessionName(index, input.value); });
+              cancel.addEventListener('click', ()=>{ renderSessions(); });
+            });
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type='button'; deleteBtn.textContent='Delete'; deleteBtn.className='delete-btn';
+            deleteBtn.addEventListener('click', ()=>{ deleteSession(index); });
+
+            actions.append(editBtn, deleteBtn);
+            right.appendChild(dur);
+            right.appendChild(actions);
+
+            li.appendChild(left);
+            li.appendChild(right);
+            logList.appendChild(li);
+          }
 
           function deleteSession(index){ const s=getSessions(); if(index<0||index>=s.length) return; s.splice(index,1); saveSessions(s); renderSessions(); }
           function updateSessionName(index,newName){ const s=getSessions(); if(index<0||index>=s.length) return; s[index].label = (newName||'').trim() || 'Unnamed session'; saveSessions(s); renderSessions(); }
