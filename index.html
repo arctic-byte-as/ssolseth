@@ -1,4 +1,4 @@
-ÿþï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
@@ -43,11 +43,7 @@
       <ul id="log"></ul>
       <p id="emptyState" class="empty-state">No sessions yet. Start the timer to log your work.</p>
 
-      <!-- Ads (simulated-->
-      <!-- AdSense placeholder: to enable real Google AdSense, insert your AdSense script and publisher ad slot here. Example: -->
-      <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_PUB_ID" crossorigin="anonymous"></script> -->
-      <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="YOUR_PUB_ID" data-ad-slot="YOUR_SLOT" data-ad-format="auto"></ins> -->
-      <!-- <script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->
+      <!-- Ads (simulated) -->
       <div class="ads" id="ads" aria-live="polite"></div>
 
       <script>
@@ -81,28 +77,24 @@
 
           function displaySession(session,index){ const li=document.createElement('li'); li.className='session-item'; const text=document.createElement('div'); text.className='log-text'; text.textContent = session.label + ' â€” stopped at ' + session.time + ' â€” Duration: ' + session.duration; const editBtn=document.createElement('button'); editBtn.type='button'; editBtn.textContent='Edit'; editBtn.addEventListener('click', ()=>{ const input=document.createElement('input'); input.type='text'; input.value=session.label; input.className='edit-input'; const save=document.createElement('button'); save.type='button'; save.textContent='Save'; const cancel=document.createElement('button'); cancel.type='button'; cancel.textContent='Cancel'; li.innerHTML=''; li.append(input, save, cancel); save.addEventListener('click', ()=>{ updateSessionName(index, input.value); }); cancel.addEventListener('click', ()=>{ renderSessions(); }); }); const deleteBtn=document.createElement('button'); deleteBtn.type='button'; deleteBtn.textContent='Delete'; deleteBtn.className='delete-btn'; deleteBtn.addEventListener('click', ()=>{ deleteSession(index); }); li.append(text, editBtn, deleteBtn); logList.appendChild(li); }
 
-          function deleteSession(index){ const s=getSessions(); if(index<0||index>=s.lengthreturn; s.splice(index,1); saveSessions(s); renderSessions(); }
+          function deleteSession(index){ const s=getSessions(); if(index<0||index>=s.length) return; s.splice(index,1); saveSessions(s); renderSessions(); }
           function updateSessionName(index,newName){ const s=getSessions(); if(index<0||index>=s.length) return; s[index].label = (newName||'').trim() || 'Unnamed session'; saveSessions(s); renderSessions(); }
-          function clearAllSessions(){ const s=getSessions(); if(!s.lengthreturn; if(window.confirm('Clear all sessions? This will remove every logged session and cannot be undone.')){ saveSessions([]); renderSessions(); } }
+          function clearAllSessions(){ const s=getSessions(); if(!s.length) return; if(window.confirm('Clear all sessions? This will remove every logged session and cannot be undone.')){ saveSessions([]); renderSessions(); } }
 
           function matchesBlacklist(text){ const t=(text||'').toLowerCase(); return blacklist.some(b=>t.includes(b)); }
           function findAdsForQuery(query,max=3){ if(!query || matchesBlacklist(query)) return []; const q=query.toLowerCase(); const matches=[]; adsDB.forEach(ad=>{ for(const k of ad.keywords){ if(q.includes(k) || k.includes(q)){ matches.push(ad); break; } } }); return matches.slice(0,max); }
 
           function updateAds(query){ adsContainer.innerHTML=''; const ads=findAdsForQuery(query); if(!ads.length) return; ads.forEach(ad=>{ const item=document.createElement('div'); item.className='ad-item'; const title=document.createElement('div'); title.className='ad-title'; title.textContent=ad.title; const desc=document.createElement('div'); desc.className='ad-desc'; desc.textContent=ad.desc; const cta=document.createElement('a'); cta.className='ad-cta'; cta.textContent='View'; cta.href=ad.url; cta.target='_blank'; cta.rel='noopener'; item.append(title, desc, cta); adsContainer.appendChild(item); }); }
 
-          // Use combined session log content (labelsto drive ads
           function updateAdsFromSessions(){ const sessions = getSessions(); const combined = sessions.map(s=>s.label).join(' '); updateAds(combined); }
 
-          // Timer controls
           function tick(){ seconds++; timerLabel.textContent = formatTime(seconds); }
           startStopButton.addEventListener('click', ()=>{
-            if(!running){ running=true; startStopButton.textContent='Stop'; timerId = setInterval(tick,1000); } else { // stop and log
-              running=false; startStopButton.textContent='Start'; clearInterval(timerId); const label = (sessionNameInput.value||'').trim() || 'Unnamed session'; const time = new Date().toLocaleString(); const duration = formatTime(seconds); const sessions = getSessions(); sessions.unshift({ label, time, duration }); saveSessions(sessions); seconds = 0; timerLabel.textContent = formatTime(0); sessionNameInput.value=''; renderSessions(); }
+            if(!running){ running=true; startStopButton.textContent='Stop'; timerId = setInterval(tick,1000); } else { running=false; startStopButton.textContent='Start'; clearInterval(timerId); const label = (sessionNameInput.value||'').trim() || 'Unnamed session'; const time = new Date().toLocaleString(); const duration = formatTime(seconds); const sessions = getSessions(); sessions.unshift({ label, time, duration }); saveSessions(sessions); seconds = 0; timerLabel.textContent = formatTime(0); sessionNameInput.value=''; renderSessions(); }
           });
 
           clearAllButton.addEventListener('click', clearAllSessions);
 
-          // initial render
           renderSessions();
         });
       </script>
