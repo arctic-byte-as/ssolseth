@@ -20,4 +20,15 @@ db.prepare(`CREATE TABLE IF NOT EXISTS sessions (
   FOREIGN KEY(user_id) REFERENCES users(id)
 )`).run();
 
+// password reset tokens (store hashed token)
+db.prepare(`CREATE TABLE IF NOT EXISTS password_resets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  token_hash TEXT NOT NULL,
+  expires_at DATETIME NOT NULL,
+  used INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+)`).run();
+
 module.exports = db;
