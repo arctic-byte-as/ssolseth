@@ -11,7 +11,10 @@
       h1 { font-size: 1.6rem; margin-bottom: 0.75rem; color: #e94560; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
       .auth-area { display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-bottom:8px; }
       .auth-area button{ padding:6px 10px; border-radius:8px; background:#0f3460; color:#fff; border:none; cursor:pointer; }
-      .auth-panel { background:#0b1220; padding:12px; border-radius:10px; margin-bottom:12px; }
+      .auth-panel, .profile-panel { background:#0b1220; padding:12px; border-radius:10px; margin-bottom:12px; }
+      .profile-panel { display:flex; flex-direction:column; gap:6px; }
+      .profile-item { color:#c9d1ff; font-size:0.95rem; }
+      .profile-button { display:inline-block; padding:6px 10px; border-radius:8px; border:none; background:#1b5d8f; color:#fff; cursor:pointer; }
       #timer { font-size: 3rem; font-weight: bold; text-align: center; color: #ffffff; margin-bottom: 1rem; }
       .form-group { margin-bottom: 0.75rem; }
       input[type="text"], input.edit-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 2px solid #0f3460; background-color: #0f3460; color: #eee; font-size: 1rem; outline: none; }
@@ -50,6 +53,7 @@
       <div id="authPanel" class="auth-panel" style="display:none;">
         <!-- login / signup / reset forms will be injected here -->
       </div>
+      <div id="profilePanel" class="profile-panel" style="display:none;"></div>
       <p id="timer">00:00:00</p>
 
       <div class="form-group">
@@ -71,7 +75,8 @@
 
       <script>
         document.addEventListener('DOMContentLoaded', () => {
-          const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '';
+          window.APP_CONFIG = window.APP_CONFIG || { API_BASE: '' };
+          const API_BASE = window.APP_CONFIG.API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '');
           function apiFetch(path, opts={}){
             const headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
             const token = localStorage.getItem('authToken'); if(token) headers['Authorization'] = 'Bearer '+token;
@@ -81,6 +86,7 @@
           // Auth UI
           const authArea = document.getElementById('authArea');
           const authPanel = document.getElementById('authPanel');
+          const profilePanel = document.getElementById('profilePanel');
           const authStatus = document.getElementById('authStatus');
           const showLoginBtn = document.getElementById('showLogin');
           const showSignupBtn = document.getElementById('showSignup');
@@ -88,19 +94,31 @@
           function setUser(user, token){
             if(user && token){ localStorage.setItem('authToken', token); localStorage.setItem('authUser', JSON.stringify(user)); }
             else { localStorage.removeItem('authToken'); localStorage.removeItem('authUser'); }
-            updateAuthUI();
+            updateAuthUI(); renderProfile();
           }
           function getUser(){ try{ return JSON.parse(localStorage.getItem('authUser')||'null'); }catch(e){ return null; } }
           function isSignedIn(){ return !!localStorage.getItem('authToken'); }
 
-          function updateAuthUI(){ const u = getUser(); if(isSignedIn() && u){ authStatus.textContent = u.email || u.name || 'Signed in'; showLoginBtn.style.display='none'; showSignupBtn.style.display='none'; authPanel.style.display='none'; const out = document.createElement('button'); out.textContent='Logout'; out.addEventListener('click', ()=>{ setUser(null); renderSessions(); updateAdsFromSessions(); }); if(!document.getElementById('logoutBtn')){ out.id='logoutBtn'; authArea.appendChild(out); } } else { authStatus.textContent='Not signed in'; showLoginBtn.style.display='inline-block'; showSignupBtn.style.display='inline-block'; const ex = document.getElementById('logoutBtn'); if(ex) ex.remove(); } }
+          function updateAuthUI(){ const u = getUser(); if(isSignedIn() && u){ authStatus.textContent = u.email || u.name || 'Signed in'; showLoginBtn.style.display='none'; showSignupBtn.style.display='none'; authPanel.style.display='none'; const out = document.createElement('button'); out.textContent='Logout'; out.className='profile-button'; out.addEventListener('click', ()=>{ setUser(null); loadLocalSessions(); renderSessions(); updateAdsFromSessions(); renderProfile(); }); if(!document.getElementById('logoutBtn')){ out.id='logoutBtn'; authArea.appendChild(out); } } else { authStatus.textContent='Not signed in'; showLoginBtn.style.display='inline-block'; showSignupBtn.style.display='inline-block'; const ex = document.getElementById('logoutBtn'); if(ex) ex.remove(); profilePanel.style.display='none'; } }
+
+          function renderProfile(){ if(!isSignedIn()){ profilePanel.style.display='none'; return; }
+            const user = getUser(); profilePanel.innerHTML = '';
+            const emailDiv = document.createElement('div'); emailDiv.className='profile-item'; emailDiv.textContent = 'Signed in as '+(user.email||user.name||'user');
+            const refresh = document.createElement('button'); refresh.textContent='Refresh server sessions'; refresh.className='profile-button';
+            refresh.addEventListener('click', ()=> loadSessionsIfSigned(true));
+            const clearServer = document.createElement('button'); clearServer.textContent='Delete all server sessions'; clearServer.className='profile-button';
+            clearServer.addEventListener('click', async ()=>{ if(!confirm('Delete all server sessions for your account?')) return; const sessions = getSessions().filter(s=>s.id); await Promise.all(sessions.map(s=> apiFetch('/sessions/'+s.id, { method:'DELETE' }).catch(()=>null))); loadSessionsIfSigned(true); });
+            const note = document.createElement('div'); note.className='profile-item'; note.textContent='Server sessions are loaded here while signed in.';
+            profilePanel.append(emailDiv, refresh, clearServer, note);
+            profilePanel.style.display='flex';
+          }
 
           function showAuthForm(mode){ authPanel.innerHTML=''; authPanel.style.display='block'; if(mode==='login' || mode==='signup'){
             const email = document.createElement('input'); email.type='text'; email.placeholder='Email'; email.style.width='100%'; email.style.marginBottom='8px';
             const name = document.createElement('input'); name.type='text'; name.placeholder='Name (optional)'; name.style.width='100%'; name.style.marginBottom='8px';
             const pass = document.createElement('input'); pass.type='password'; pass.placeholder='Password (min 8 chars)'; pass.style.width='100%'; pass.style.marginBottom='8px';
             const submit = document.createElement('button'); submit.textContent = mode==='login' ? 'Login' : 'Create account';
-            const resetLink = document.createElement('a'); resetLink.href='#'; resetLink.textContent='Forgot?'; resetLink.style.marginLeft='8px'; resetLink.addEventListener('click',(e)=>{ e.preventDefault(); showAuthForm('request-reset'); });
+            const resetLink = document.createElement('a'); resetLink.href='reset.html'; resetLink.textContent='Forgot?'; resetLink.style.marginLeft='8px';
             authPanel.append(email, name, pass, submit, resetLink);
             submit.addEventListener('click', async ()=>{
               try{
@@ -139,9 +157,10 @@
           // If token in URL, show reset form
           if(new URLSearchParams(location.search).get('token')){ showAuthForm('reset'); }
 
-          function loadSessionsIfSigned(){ if(!isSignedIn()) return; apiFetch('/sessions').then(rows=>{ if(Array.isArray(rows)){ localStorage.setItem('sessions', JSON.stringify(rows)); renderSessions(); } }).catch(e=>{ console.warn('Failed to load sessions', e); }); }
+          function loadLocalSessions(){ try{ const stored = JSON.parse(localStorage.getItem('sessions')||'[]'); localStorage.setItem('sessions', JSON.stringify(stored)); renderSessions(); }catch(e){ renderSessions(); } }
+          function loadSessionsIfSigned(force=false){ if(!isSignedIn()) return; apiFetch('/sessions').then(rows=>{ if(Array.isArray(rows)){ localStorage.setItem('sessions', JSON.stringify(rows)); renderSessions(); if(force) renderProfile(); } }).catch(e=>{ console.warn('Failed to load sessions', e); if(!force) renderSessions(); }); }
 
-          updateAuthUI(); loadSessionsIfSigned();
+          updateAuthUI(); renderProfile(); loadSessionsIfSigned();
           let timerId = null; let seconds = 0; let running = false;
           const timerLabel = document.getElementById('timer');
           const startStopButton = document.getElementById('startStop');
@@ -178,6 +197,7 @@
             const title = document.createElement('div');
             title.className = 'session-title';
             title.textContent = session.label || 'Unnamed session';
+            if(session.id){ const badge = document.createElement('span'); badge.style.fontSize='0.75rem'; badge.style.marginLeft='6px'; badge.style.opacity='0.8'; badge.textContent='(server)'; title.appendChild(badge); }
             const actions = document.createElement('div');
             actions.className = 'session-actions';
             const editBtn = document.createElement('button');
@@ -214,9 +234,9 @@
             logList.appendChild(li);
           }
 
-          function deleteSession(index){ const s=getSessions(); if(index<0||index>=s.length) return; s.splice(index,1); saveSessions(s); renderSessions(); }
-          function updateSessionName(index,newName){ const s=getSessions(); if(index<0||index>=s.length) return; s[index].label = (newName||'').trim() || 'Unnamed session'; saveSessions(s); renderSessions(); }
-          function clearAllSessions(){ const s=getSessions(); if(!s.length) return; if(window.confirm('Clear all sessions? This will remove every logged session and cannot be undone.')){ saveSessions([]); renderSessions(); } }
+          async function deleteSession(index){ const s=getSessions(); if(index<0||index>=s.length) return; const session = s[index]; if(isSignedIn() && session.id){ try{ await apiFetch('/sessions/'+session.id, { method:'DELETE' }); }catch(e){ console.warn('delete failed', e); } return loadSessionsIfSigned(); } s.splice(index,1); saveSessions(s); renderSessions(); }
+          async function updateSessionName(index,newName){ const s=getSessions(); if(index<0||index>=s.length) return; const session = s[index]; const label = (newName||'').trim() || 'Unnamed session'; if(isSignedIn() && session.id){ try{ await apiFetch('/sessions/'+session.id, { method:'PUT', body: JSON.stringify({ label, time: session.time, duration: session.duration }) }); return loadSessionsIfSigned(); }catch(e){ console.warn('update failed', e); } } s[index].label = label; saveSessions(s); renderSessions(); }
+          async function clearAllSessions(){ const s=getSessions(); if(!s.length) return; if(!window.confirm('Clear all sessions? This will remove every logged session and cannot be undone.')) return; if(isSignedIn()){ const deletes = s.filter(session=>session.id).map(session=> apiFetch('/sessions/'+session.id, { method:'DELETE' }).catch(()=>null)); await Promise.all(deletes); } saveSessions([]); renderSessions(); }
 
           function matchesBlacklist(text){ const t=(text||'').toLowerCase(); return blacklist.some(b=>t.includes(b)); }
           function findAdsForQuery(query,max=3){ if(!query || matchesBlacklist(query)) return []; const q=query.toLowerCase(); const matches=[]; adsDB.forEach(ad=>{ for(const k of ad.keywords){ if(q.includes(k) || k.includes(q)){ matches.push(ad); break; } } }); return matches.slice(0,max); }

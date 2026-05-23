@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Password</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: Arial, sans-serif; background: #11182f; color: #edf2ff; padding: 20px; }
+    .card { width: 100%; max-width: 420px; padding: 28px; border-radius: 18px; background: linear-gradient(180deg, #16213e, #0d1322); box-shadow: 0 18px 50px rgba(0,0,0,0.35); }
+    h1 { font-size: 1.6rem; margin-bottom: 16px; color: #e94560; text-align: center; }
+    p { margin-bottom: 16px; line-height: 1.6; color: #cfd7ff; }
+    input { width: 100%; padding: 12px 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #274060; background: #0f3460; color: #edf2ff; outline: none; }
+    button { width: 100%; padding: 12px 14px; border: none; border-radius: 12px; background: #e94560; color: #fff; font-size: 1rem; cursor: pointer; }
+    .info { margin-bottom: 12px; color: #a8b3ff; font-size: 0.95rem; }
+    .link { display: block; margin-top: 14px; text-align: center; color: #7ed6df; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Reset Password</h1>
+    <p class="info">Enter your new password below. If you opened this page without a reset token, copy the token from the reset email into the URL.</p>
+    <div id="message" class="info"></div>
+    <input id="passwordInput" type="password" placeholder="New password (min 8 chars)" autocomplete="new-password">
+    <button id="resetButton">Update Password</button>
+    <a class="link" href="index.html">Return to app</a>
+  </div>
+
+  <script>
+    window.APP_CONFIG = window.APP_CONFIG || { API_BASE: '' };
+    const API_BASE = window.APP_CONFIG.API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '');
+    const passwordInput = document.getElementById('passwordInput');
+    const resetButton = document.getElementById('resetButton');
+    const message = document.getElementById('message');
+    const token = new URLSearchParams(location.search).get('token') || '';
+
+    function showMessage(text, error=false){ message.textContent = text; message.style.color = error ? '#ff7979' : '#a8b3ff'; }
+
+    if(!token){ showMessage('No reset token found in the URL. Check your email link or paste ?token=... into the address bar.', true); }
+
+    resetButton.addEventListener('click', async ()=>{
+      const password = passwordInput.value.trim();
+      if(password.length < 8){ showMessage('Password must be at least 8 characters.', true); return; }
+      if(!token){ showMessage('Missing reset token in the URL.', true); return; }
+      try{
+        const res = await fetch(API_BASE + '/auth/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, password })
+        });
+        if(!res.ok){ const data = await res.json(); throw data; }
+        showMessage('Password has been reset. Return to the app and login.', false);
+        passwordInput.value = '';
+      }catch(err){ showMessage(err.error || 'Reset failed. Please try again.', true); }
+    });
+  </script>
+</body>
+</html>
