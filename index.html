@@ -9,6 +9,9 @@
       body { font-family: Arial, sans-serif; background-color: #1a1a2e; color: #eee; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
       .container { background-color: #16213e; border-radius: 16px; padding: 32px; width: 100%; max-width: 620px; box-shadow: 0 10px 35px rgba(0,0,0,0.35); }
       h1 { font-size: 1.6rem; margin-bottom: 0.75rem; color: #e94560; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
+      .auth-area { display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-bottom:8px; }
+      .auth-area button{ padding:6px 10px; border-radius:8px; background:#0f3460; color:#fff; border:none; cursor:pointer; }
+      .auth-panel { background:#0b1220; padding:12px; border-radius:10px; margin-bottom:12px; }
       #timer { font-size: 3rem; font-weight: bold; text-align: center; color: #ffffff; margin-bottom: 1rem; }
       .form-group { margin-bottom: 0.75rem; }
       input[type="text"], input.edit-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 2px solid #0f3460; background-color: #0f3460; color: #eee; font-size: 1rem; outline: none; }
@@ -38,6 +41,15 @@
   <body>
     <div class="container">
       <h1>Time Tracker</h1>
+      <div class="auth-area" id="authArea">
+        <span id="authStatus">Not signed in</span>
+        <button id="showLogin">Login</button>
+        <button id="showSignup">Sign up</button>
+      </div>
+
+      <div id="authPanel" class="auth-panel" style="display:none;">
+        <!-- login / signup / reset forms will be injected here -->
+      </div>
       <p id="timer">00:00:00</p>
 
       <div class="form-group">
@@ -59,6 +71,77 @@
 
       <script>
         document.addEventListener('DOMContentLoaded', () => {
+          const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '';
+          function apiFetch(path, opts={}){
+            const headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+            const token = localStorage.getItem('authToken'); if(token) headers['Authorization'] = 'Bearer '+token;
+            return fetch(API_BASE+path, Object.assign({}, opts, { headers })).then(async r=>{ const txt = await r.text(); let json=null; try{ json = txt?JSON.parse(txt):{} }catch(e){ json = { error: txt } } if(!r.ok) throw json; return json; });
+          }
+
+          // Auth UI
+          const authArea = document.getElementById('authArea');
+          const authPanel = document.getElementById('authPanel');
+          const authStatus = document.getElementById('authStatus');
+          const showLoginBtn = document.getElementById('showLogin');
+          const showSignupBtn = document.getElementById('showSignup');
+
+          function setUser(user, token){
+            if(user && token){ localStorage.setItem('authToken', token); localStorage.setItem('authUser', JSON.stringify(user)); }
+            else { localStorage.removeItem('authToken'); localStorage.removeItem('authUser'); }
+            updateAuthUI();
+          }
+          function getUser(){ try{ return JSON.parse(localStorage.getItem('authUser')||'null'); }catch(e){ return null; } }
+          function isSignedIn(){ return !!localStorage.getItem('authToken'); }
+
+          function updateAuthUI(){ const u = getUser(); if(isSignedIn() && u){ authStatus.textContent = u.email || u.name || 'Signed in'; showLoginBtn.style.display='none'; showSignupBtn.style.display='none'; authPanel.style.display='none'; const out = document.createElement('button'); out.textContent='Logout'; out.addEventListener('click', ()=>{ setUser(null); renderSessions(); updateAdsFromSessions(); }); if(!document.getElementById('logoutBtn')){ out.id='logoutBtn'; authArea.appendChild(out); } } else { authStatus.textContent='Not signed in'; showLoginBtn.style.display='inline-block'; showSignupBtn.style.display='inline-block'; const ex = document.getElementById('logoutBtn'); if(ex) ex.remove(); } }
+
+          function showAuthForm(mode){ authPanel.innerHTML=''; authPanel.style.display='block'; if(mode==='login' || mode==='signup'){
+            const email = document.createElement('input'); email.type='text'; email.placeholder='Email'; email.style.width='100%'; email.style.marginBottom='8px';
+            const name = document.createElement('input'); name.type='text'; name.placeholder='Name (optional)'; name.style.width='100%'; name.style.marginBottom='8px';
+            const pass = document.createElement('input'); pass.type='password'; pass.placeholder='Password (min 8 chars)'; pass.style.width='100%'; pass.style.marginBottom='8px';
+            const submit = document.createElement('button'); submit.textContent = mode==='login' ? 'Login' : 'Create account';
+            const resetLink = document.createElement('a'); resetLink.href='#'; resetLink.textContent='Forgot?'; resetLink.style.marginLeft='8px'; resetLink.addEventListener('click',(e)=>{ e.preventDefault(); showAuthForm('request-reset'); });
+            authPanel.append(email, name, pass, submit, resetLink);
+            submit.addEventListener('click', async ()=>{
+              try{
+                if(mode==='signup'){
+                  const res = await apiFetch('/auth/signup', { method:'POST', body: JSON.stringify({ email: email.value, password: pass.value, name: name.value }) });
+                  setUser(res.user, res.token);
+                } else {
+                  const res = await apiFetch('/auth/login', { method:'POST', body: JSON.stringify({ email: email.value, password: pass.value }) });
+                  setUser(res.user, res.token);
+                }
+                authPanel.style.display='none'; loadSessionsIfSigned();
+              }catch(err){ alert(err.error||JSON.stringify(err)); }
+            });
+          } else if(mode==='request-reset'){
+            const email = document.createElement('input'); email.type='text'; email.placeholder='Email to reset'; email.style.width='100%'; email.style.marginBottom='8px';
+            const submit = document.createElement('button'); submit.textContent='Request reset';
+            authPanel.append(email, submit);
+            submit.addEventListener('click', async ()=>{
+              try{ const res = await apiFetch('/auth/request-reset', { method:'POST', body: JSON.stringify({ email: email.value }) });
+                if(res.token) alert('Dev reset token: '+res.token+'\nURL: '+res.resetUrl);
+                else alert('If the email exists you will receive reset instructions.'); authPanel.style.display='none';
+              }catch(err){ alert(err.error||JSON.stringify(err)); }
+            });
+          } else if(mode==='reset'){ // token present in url
+            const token = new URLSearchParams(location.search).get('token') || '';
+            const pass = document.createElement('input'); pass.type='password'; pass.placeholder='New password (min 8 chars)'; pass.style.width='100%'; pass.style.marginBottom='8px';
+            const submit = document.createElement('button'); submit.textContent='Set new password';
+            authPanel.append(pass, submit);
+            submit.addEventListener('click', async ()=>{ try{ const res = await apiFetch('/auth/reset', { method:'POST', body: JSON.stringify({ token, password: pass.value }) }); alert('Password updated. Please login.'); authPanel.style.display='none'; }catch(err){ alert(err.error||JSON.stringify(err)); } });
+          }
+        }
+
+          showLoginBtn.addEventListener('click', ()=> showAuthForm('login'));
+          showSignupBtn.addEventListener('click', ()=> showAuthForm('signup'));
+
+          // If token in URL, show reset form
+          if(new URLSearchParams(location.search).get('token')){ showAuthForm('reset'); }
+
+          function loadSessionsIfSigned(){ if(!isSignedIn()) return; apiFetch('/sessions').then(rows=>{ if(Array.isArray(rows)){ localStorage.setItem('sessions', JSON.stringify(rows)); renderSessions(); } }).catch(e=>{ console.warn('Failed to load sessions', e); }); }
+
+          updateAuthUI(); loadSessionsIfSigned();
           let timerId = null; let seconds = 0; let running = false;
           const timerLabel = document.getElementById('timer');
           const startStopButton = document.getElementById('startStop');
