@@ -245,7 +245,12 @@
 
           function tick(){ seconds++; timerLabel.textContent = formatTime(seconds); }
           startStopButton.addEventListener('click', ()=>{
-            if(!running){ running=true; startStopButton.textContent='Stop'; timerId = setInterval(tick,1000); } else { running=false; startStopButton.textContent='Start'; clearInterval(timerId); const label = (sessionNameInput.value||'').trim() || 'Unnamed session'; const time = new Date().toLocaleString(); const duration = formatTime(seconds); const sessions = getSessions(); sessions.unshift({ label, time, duration }); saveSessions(sessions); seconds = 0; timerLabel.textContent = formatTime(0); sessionNameInput.value=''; renderSessions(); }
+            if(!running){ running=true; startStopButton.textContent='Stop'; timerId = setInterval(tick,1000); } else { running=false; startStopButton.textContent='Start'; clearInterval(timerId); const label = (sessionNameInput.value||'').trim() || 'Unnamed session'; const time = new Date().toLocaleString(); const duration = formatTime(seconds); const sessionObj = { label, time, duration };
+              // If signed in, post to server and reload from server; otherwise save locally
+              if(localStorage.getItem('authToken')){
+                apiFetch('/sessions', { method: 'POST', body: JSON.stringify(sessionObj) }).then(()=>{ loadSessionsIfSigned(); }).catch((e)=>{ const sessions = getSessions(); sessions.unshift(sessionObj); saveSessions(sessions); renderSessions(); });
+              } else { const sessions = getSessions(); sessions.unshift(sessionObj); saveSessions(sessions); renderSessions(); }
+            seconds = 0; timerLabel.textContent = formatTime(0); sessionNameInput.value=''; }
           });
 
           clearAllButton.addEventListener('click', clearAllSessions);
