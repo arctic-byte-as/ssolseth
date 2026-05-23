@@ -22,3 +22,13 @@ You are the workspace planning agent for this repository. Your job is to produce
 - High-level plan
 - Action items
 - Notes / questions
+- Session Log
+
+## Session Log
+- Description: <clear, human-readable summary of what was discussed or planned>
+- Start: <date/time>
+- End: <date/time>
+- Duration: <elapsed time>
+
+## Cumulative Duration
+- Total time spent in this session: <sum of durations from all session log entries>
