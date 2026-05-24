@@ -29,8 +29,13 @@
       .category-item { display: flex; justify-content: space-between; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.05); color: #e6eef8; font-size: 0.95rem; }
       .category-name { color: #ffd97a; }
       .tab-badge { margin-left: 10px; min-width: 22px; padding: 2px 8px; border-radius: 999px; background: #ffd97a; color: #0d1633; font-size: 0.8rem; font-weight: 700; }
-      h1 { font-size: 1.6rem; margin-bottom: 0.75rem; color: #e94560; letter-spacing: 1px; text-transform: uppercase; }
-      .auth-area { display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-bottom:8px; }
+      .top-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+      .brand { display: flex; align-items: center; gap: 12px; }
+      .brand img { width: 52px; height: 52px; border-radius: 14px; background: #0f3460; padding: 8px; object-fit: contain; }
+      .brand button { padding: 6px 10px; border-radius: 10px; border: 1px solid #0f3460; background: #0b1220; color: #fff; cursor: pointer; }
+      .page-title { flex: 1; text-align: center; }
+      .page-title h1 { font-size: 1.6rem; margin: 0; color: #e94560; letter-spacing: 1px; text-transform: uppercase; }
+      .auth-area { display:flex; gap:8px; align-items:center; justify-content:flex-end; }
       .auth-area button{ padding:6px 10px; border-radius:8px; background:#0f3460; color:#fff; border:none; cursor:pointer; }
       .auth-panel, .profile-panel { background:#0b1220; padding:12px; border-radius:10px; margin-bottom:12px; }
       .profile-panel { display:flex; flex-direction:column; gap:6px; }
@@ -67,13 +72,18 @@
       <div class="panel-wrapper">
         <div class="container">
           <div id="trackerContainer">
-            <h1>Time Tracker</h1>
-            <div class="auth-area" id="authArea">
-              <span id="authStatus">Not signed in</span>
-              <button id="showLogin">Login</button>
-              <button id="showSignup">Sign up</button>
-            </div>
-
+            <div class="top-bar">
+              <div class="brand">
+                <img id="logoImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f3460'/%3E%3Cpath d='M32 16a16 16 0 1 0 16 16A16 16 0 0 0 32 16Zm0 4a12 12 0 1 1-12 12 12 12 0 0 1 12-12Zm1 3v8.5l6.5 3.9 1.5-2.5-6-3.6V23h-2Z' fill='%23fff'/%3E%3C/svg%3E" alt="Logo" />
+                <button type="button" id="uploadLogoBtn">Upload logo</button>
+                <input type="file" id="logoInput" accept="image/*" style="display:none;" />
+              </div>
+              <div class="page-title"><h1>Time Tracker</h1></div>
+              <div class="auth-area" id="authArea">
+                <span id="authStatus">Not signed in</span>
+                <button id="showLogin">Login</button>
+                <button id="showSignup">Sign up</button>
+              </div>
             <div id="authPanel" class="auth-panel" style="display:none;">
               <!-- login / signup / reset forms will be injected here -->
             </div>
@@ -168,6 +178,9 @@
           function isSignedIn(){ return !!localStorage.getItem('authToken'); }
 
           function updateAuthUI(){ const u = getUser(); if(isSignedIn() && u){ authStatus.textContent = u.email || u.name || 'Signed in'; showLoginBtn.style.display='none'; showSignupBtn.style.display='none'; authPanel.style.display='none'; const out = document.createElement('button'); out.textContent='Logout'; out.className='profile-button'; out.addEventListener('click', ()=>{ setUser(null); loadLocalSessions(); renderSessions(); updateAdsFromSessions(); renderProfile(); }); if(!document.getElementById('logoutBtn')){ out.id='logoutBtn'; authArea.appendChild(out); } } else { authStatus.textContent='Not signed in'; showLoginBtn.style.display='inline-block'; showSignupBtn.style.display='inline-block'; const ex = document.getElementById('logoutBtn'); if(ex) ex.remove(); profilePanel.style.display='none'; } }
+
+          function loadLogo(){ const data = localStorage.getItem('companyLogo'); if(data){ document.getElementById('logoImage').src = data; } }
+          function setupLogoUpload(){ const uploadBtn = document.getElementById('uploadLogoBtn'); const logoInput = document.getElementById('logoInput'); const logoImage = document.getElementById('logoImage'); uploadBtn.addEventListener('click', ()=> logoInput.click()); logoInput.addEventListener('change', async (event)=>{ const file = event.target.files && event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = ()=>{ if(typeof reader.result === 'string'){ localStorage.setItem('companyLogo', reader.result); logoImage.src = reader.result; } }; reader.readAsDataURL(file); }); }
 
           function renderProfile(){ if(!isSignedIn()){ profilePanel.style.display='none'; return; }
             const user = getUser(); profilePanel.innerHTML = '';
@@ -277,6 +290,7 @@
           function renderDashboard(){ const sessions = getSessions(); const totalSeconds = sessions.reduce((sum,s)=> sum + parseSessionTime(s), 0); const count = sessions.length; const avgSeconds = count ? Math.round(totalSeconds / count) : 0; const longestSeconds = sessions.reduce((max,s)=> Math.max(max, parseSessionTime(s)), 0); document.getElementById('totalTime').textContent = formatTime(totalSeconds); document.getElementById('totalSessions').textContent = count; document.getElementById('avgSession').textContent = formatTime(avgSeconds); document.getElementById('longestSession').textContent = formatTime(longestSeconds); document.getElementById('activeDays').textContent = calculateActiveDays(sessions) + ' days'; renderWeeklyChart(sessions); renderCategoryBreakdown(sessions); updateDashboardBadge(sessions); }
 
           let activeTab = 'tracker';
+          loadLogo(); setupLogoUpload();
           updateAuthUI(); renderProfile(); loadSessionsIfSigned();
           document.getElementById('tabTracker').addEventListener('click', ()=> showTab('tracker'));
           document.getElementById('tabDashboard').addEventListener('click', ()=> showTab('dashboard'));
