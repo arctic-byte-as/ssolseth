@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -12,9 +13,15 @@ const { Parser } = require('json2csv');
 const app = express();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const WEB_ROOT = path.join(__dirname, '..');
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(WEB_ROOT));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(WEB_ROOT, 'index.html'));
+});
 
 function generateToken(user){
   return jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
