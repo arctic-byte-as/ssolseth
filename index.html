@@ -9,8 +9,8 @@
       body { font-family: Arial, sans-serif; background-color: #1a1a2e; color: #eee; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
       .app-shell { display: flex; justify-content: center; width: 100%; }
       .panel-wrapper { position: relative; display: flex; width: 100%; max-width: 760px; }
-      .container { position: relative; background-color: #16213e; border-radius: 16px; padding: 32px; width: 100%; box-shadow: 0 10px 35px rgba(0,0,0,0.35); }
-      .side-tabs { position: absolute; right: -12px; top: 48px; display: flex; flex-direction: column; gap: 6px; }
+      .container { position: relative; background-color: #16213e; border-radius: 16px; padding: 32px 48px 32px 32px; width: 100%; box-shadow: 0 10px 35px rgba(0,0,0,0.35); }
+      .side-tabs { position: absolute; right: -76px; top: 32px; display: flex; flex-direction: column; gap: 6px; }
       .tracker-panel, .dashboard-panel { width: 100%; }
       .tab-button { padding: 16px 18px; min-width: 150px; border-radius: 16px 0 0 16px; border: 1px solid #0f3460; border-right: none; background: #0d1633; color: #d9e4ff; cursor: pointer; text-align: left; font-weight: 700; margin-bottom: 6px; box-shadow: inset -2px 0 0 rgba(255,255,255,0.08); }
       .tab-button.active { background: #e94560; color: #fff; box-shadow: inset -2px 0 0 rgba(255,255,255,0.35); }
@@ -138,39 +138,6 @@
           <button class="tab-button active" id="tabTracker">Tracker</button>
           <button class="tab-button" id="tabDashboard">Dashboard <span id="dashboardBadge" class="tab-badge">0</span></button>
         </aside>
-      </div>
-    </div>
-      <h1>Dashboard</h1>
-      <p class="dashboard-note">Insight at a glance: your tracked hours, session averages, streaks, and productivity trends.</p>
-      <div class="dashboard-grid">
-        <div class="dashboard-card">
-          <h3>Total Tracked Time</h3>
-          <p id="totalTime">00:00:00</p>
-        </div>
-        <div class="dashboard-card">
-          <h3>Total Sessions</h3>
-          <p id="totalSessions">0</p>
-        </div>
-        <div class="dashboard-card">
-          <h3>Average Session</h3>
-          <p id="avgSession">00:00:00</p>
-        </div>
-        <div class="dashboard-card">
-          <h3>Longest Session</h3>
-          <p id="longestSession">00:00:00</p>
-        </div>
-        <div class="dashboard-card" style="grid-column: span 2;">
-          <h3>Active Days (Last 7)</h3>
-          <p id="activeDays">0 days</p>
-        </div>
-      </div>
-      <div class="dashboard-card" style="grid-column: span 2;">
-        <h3>Weekly Workflow</h3>
-        <div id="weeklyChart" class="dashboard-chart"></div>
-      </div>
-      <div class="dashboard-card" style="grid-column: span 2;">
-        <h3>Category Breakdown</h3>
-        <div id="categoryBreakdown" class="category-list"></div>
       </div>
     </div>
 
