@@ -19,6 +19,15 @@
       .dashboard-card p { font-size: 2rem; font-weight: 700; margin: 0; color: #f2f7ff; }
       .dashboard-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
       .dashboard-note { color: #a1a1c9; margin-bottom: 16px; }
+      .dashboard-chart { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 10px; align-items: end; height: 160px; }
+      .chart-bar { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .chart-bar-inner { width: 100%; min-height: 16px; background: #0d1633; border-radius: 999px; position: relative; overflow: hidden; }
+      .chart-bar-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: #48c6ef; border-radius: 999px 999px 0 0; }
+      .chart-label { font-size: 0.72rem; color: #a1a1c9; text-align: center; }
+      .category-list { display: grid; gap: 10px; }
+      .category-item { display: flex; justify-content: space-between; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.05); color: #e6eef8; font-size: 0.95rem; }
+      .category-name { color: #ffd97a; }
+      .tab-badge { margin-left: 10px; min-width: 22px; padding: 2px 8px; border-radius: 999px; background: #ffd97a; color: #0d1633; font-size: 0.8rem; font-weight: 700; }
       h1 { font-size: 1.6rem; margin-bottom: 0.75rem; color: #e94560; letter-spacing: 1px; text-transform: uppercase; }
       .auth-area { display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-bottom:8px; }
       .auth-area button{ padding:6px 10px; border-radius:8px; background:#0f3460; color:#fff; border:none; cursor:pointer; }
@@ -90,7 +99,7 @@
 
       <aside class="side-tabs" id="sideTabs">
         <button class="tab-button active" id="tabTracker">Tracker</button>
-        <button class="tab-button" id="tabDashboard">Dashboard</button>
+        <button class="tab-button" id="tabDashboard">Dashboard <span id="dashboardBadge" class="tab-badge">0</span></button>
       </aside>
     </div>
 
@@ -118,6 +127,14 @@
           <h3>Active Days (Last 7)</h3>
           <p id="activeDays">0 days</p>
         </div>
+      </div>
+      <div class="dashboard-card" style="grid-column: span 2;">
+        <h3>Weekly Workflow</h3>
+        <div id="weeklyChart" class="dashboard-chart"></div>
+      </div>
+      <div class="dashboard-card" style="grid-column: span 2;">
+        <h3>Category Breakdown</h3>
+        <div id="categoryBreakdown" class="category-list"></div>
       </div>
     </div>
 
@@ -215,7 +232,46 @@
           function parseSessionTime(session){ const parts = (session.duration||'00:00:00').split(':').map(x=>parseInt(x,10)||0); return parts[0]*3600 + parts[1]*60 + parts[2]; }
           function calculateActiveDays(sessions){ const daySet = new Set(); const now = new Date(); const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate()-6);
             sessions.forEach(s=>{ const d = new Date(s.time); if(!isNaN(d.getTime()) && d >= sevenDaysAgo){ daySet.add(d.toDateString()); } }); return daySet.size; }
-          function renderDashboard(){ const sessions = getSessions(); const totalSeconds = sessions.reduce((sum,s)=> sum + parseSessionTime(s), 0); const count = sessions.length; const avgSeconds = count ? Math.round(totalSeconds / count) : 0; const longestSeconds = sessions.reduce((max,s)=> Math.max(max, parseSessionTime(s)), 0); document.getElementById('totalTime').textContent = formatTime(totalSeconds); document.getElementById('totalSessions').textContent = count; document.getElementById('avgSession').textContent = formatTime(avgSeconds); document.getElementById('longestSession').textContent = formatTime(longestSeconds); document.getElementById('activeDays').textContent = calculateActiveDays(sessions) + ' days'; }
+          function buildWeeklyWorkflow(sessions){ const now = new Date(); const days = [];
+            for(let i=6; i>=0; i--){ const date = new Date(now.getFullYear(), now.getMonth(), now.getDate()-i); days.push({ label: date.toLocaleDateString(undefined,{weekday:'short'}).slice(0,2), key: date.toDateString(), seconds: 0 }); }
+            sessions.forEach(s=>{ const d = new Date(s.time); if(!isNaN(d.getTime())){ const dayKey = d.toDateString(); const day = days.find(x=>x.key===dayKey); if(day) day.seconds += parseSessionTime(s); } }); return days; }
+          function categorizeSessions(sessions){ const categories = [
+              { name:'Design', keywords:['design','ux','ui','prototype','mockup'] },
+              { name:'Meeting', keywords:['meeting','standup','call','sync','chat'] },
+              { name:'Coding', keywords:['code','dev','development','engineer','refactor','bug','deploy'] },
+              { name:'Writing', keywords:['write','doc','docs','blog','notes','proposal'] },
+              { name:'Focus', keywords:['focus','deep','research','study','planning','plan'] }
+            ];
+            const counts = { Other: 0 };
+            categories.forEach(cat=> counts[cat.name] = 0);
+            sessions.forEach(s=>{
+              const label = (s.label||'').toLowerCase();
+              const matched = categories.find(cat => cat.keywords.some(k=> label.includes(k)));
+              const key = matched ? matched.name : 'Other';
+              counts[key] += 1;
+            });
+            return Object.entries(counts).sort((a,b)=> b[1]-a[1]); }
+          function renderWeeklyChart(sessions){ const chart = document.getElementById('weeklyChart'); chart.innerHTML = ''; const data = buildWeeklyWorkflow(sessions); const maxSeconds = Math.max(1, ...data.map(d=>d.seconds)); data.forEach(day=>{
+              const bar = document.createElement('div'); bar.className = 'chart-bar';
+              const inner = document.createElement('div'); inner.className = 'chart-bar-inner';
+              const fill = document.createElement('div'); fill.className = 'chart-bar-fill';
+              const height = Math.round((day.seconds / maxSeconds) * 100);
+              fill.style.height = height + '%';
+              inner.appendChild(fill);
+              const label = document.createElement('div'); label.className = 'chart-label'; label.textContent = day.label;
+              const value = document.createElement('div'); value.className = 'chart-label'; value.textContent = day.seconds ? Math.round(day.seconds/3600*10)/10 + 'h' : '-';
+              bar.append(inner, value, label);
+              chart.appendChild(bar);
+            }); }
+          function renderCategoryBreakdown(sessions){ const breakdown = document.getElementById('categoryBreakdown'); breakdown.innerHTML = ''; const totals = categorizeSessions(sessions); const count = sessions.length || 1; totals.forEach(([name,value])=>{
+              const item = document.createElement('div'); item.className = 'category-item';
+              const left = document.createElement('span'); left.className='category-name'; left.textContent = name;
+              const right = document.createElement('span'); right.textContent = value + ' (' + Math.round((value/count)*100) + '%)';
+              item.append(left, right);
+              breakdown.appendChild(item);
+            }); }
+          function updateDashboardBadge(sessions){ const days = calculateActiveDays(sessions); document.getElementById('dashboardBadge').textContent = days; }
+          function renderDashboard(){ const sessions = getSessions(); const totalSeconds = sessions.reduce((sum,s)=> sum + parseSessionTime(s), 0); const count = sessions.length; const avgSeconds = count ? Math.round(totalSeconds / count) : 0; const longestSeconds = sessions.reduce((max,s)=> Math.max(max, parseSessionTime(s)), 0); document.getElementById('totalTime').textContent = formatTime(totalSeconds); document.getElementById('totalSessions').textContent = count; document.getElementById('avgSession').textContent = formatTime(avgSeconds); document.getElementById('longestSession').textContent = formatTime(longestSeconds); document.getElementById('activeDays').textContent = calculateActiveDays(sessions) + ' days'; renderWeeklyChart(sessions); renderCategoryBreakdown(sessions); updateDashboardBadge(sessions); }
 
           let activeTab = 'tracker';
           updateAuthUI(); renderProfile(); loadSessionsIfSigned();
