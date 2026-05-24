@@ -7,8 +7,19 @@
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body { font-family: Arial, sans-serif; background-color: #1a1a2e; color: #eee; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+      .app-shell { display: flex; gap: 12px; align-items: stretch; max-width: 980px; width: 100%; }
+      .tracker-panel, .dashboard-panel { width: 100%; }
       .container { background-color: #16213e; border-radius: 16px; padding: 32px; width: 100%; max-width: 620px; box-shadow: 0 10px 35px rgba(0,0,0,0.35); }
-      h1 { font-size: 1.6rem; margin-bottom: 0.75rem; color: #e94560; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
+      .side-tabs { display: flex; flex-direction: column; position: relative; margin-top: 36px; }
+      .tab-button { padding: 16px 18px; min-width: 150px; border-radius: 16px 0 0 16px; border: 1px solid #0f3460; border-right: none; background: #0d1633; color: #d9e4ff; cursor: pointer; text-align: left; font-weight: 700; margin-bottom: 6px; box-shadow: inset -2px 0 0 rgba(255,255,255,0.08); }
+      .tab-button.active { background: #e94560; color: #fff; box-shadow: inset -2px 0 0 rgba(255,255,255,0.35); }
+      .tab-button:hover { background: #122545; }
+      .dashboard-card { background: linear-gradient(180deg,#0f3460,#09203a); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 14px; }
+      .dashboard-card h3 { margin-bottom: 10px; font-size: 1rem; color: #ffd97a; }
+      .dashboard-card p { font-size: 2rem; font-weight: 700; margin: 0; color: #f2f7ff; }
+      .dashboard-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+      .dashboard-note { color: #a1a1c9; margin-bottom: 16px; }
+      h1 { font-size: 1.6rem; margin-bottom: 0.75rem; color: #e94560; letter-spacing: 1px; text-transform: uppercase; }
       .auth-area { display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-bottom:8px; }
       .auth-area button{ padding:6px 10px; border-radius:8px; background:#0f3460; color:#fff; border:none; cursor:pointer; }
       .auth-panel, .profile-panel { background:#0b1220; padding:12px; border-radius:10px; margin-bottom:12px; }
@@ -42,19 +53,21 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Time Tracker</h1>
-      <div class="auth-area" id="authArea">
-        <span id="authStatus">Not signed in</span>
-        <button id="showLogin">Login</button>
-        <button id="showSignup">Sign up</button>
-      </div>
+    <div class="app-shell">
+      <div class="tracker-panel">
+        <div class="container" id="trackerContainer">
+          <h1>Time Tracker</h1>
+          <div class="auth-area" id="authArea">
+            <span id="authStatus">Not signed in</span>
+            <button id="showLogin">Login</button>
+            <button id="showSignup">Sign up</button>
+          </div>
 
-      <div id="authPanel" class="auth-panel" style="display:none;">
-        <!-- login / signup / reset forms will be injected here -->
-      </div>
-      <div id="profilePanel" class="profile-panel" style="display:none;"></div>
-      <p id="timer">00:00:00</p>
+          <div id="authPanel" class="auth-panel" style="display:none;">
+            <!-- login / signup / reset forms will be injected here -->
+          </div>
+          <div id="profilePanel" class="profile-panel" style="display:none;"></div>
+          <p id="timer">00:00:00</p>
 
       <div class="form-group">
         <input type="text" id="sessionName" placeholder="What are you working on?" autocomplete="off">
@@ -72,8 +85,43 @@
 
       <!-- Ads (simulated) -->
       <div class="ads" id="ads" aria-live="polite"></div>
+        </div>
+      </div>
 
-      <script>
+      <aside class="side-tabs" id="sideTabs">
+        <button class="tab-button active" id="tabTracker">Tracker</button>
+        <button class="tab-button" id="tabDashboard">Dashboard</button>
+      </aside>
+    </div>
+
+    <div class="container" id="dashboardContainer" style="display:none;">
+      <h1>Dashboard</h1>
+      <p class="dashboard-note">Insight at a glance: your tracked hours, session averages, streaks, and productivity trends.</p>
+      <div class="dashboard-grid">
+        <div class="dashboard-card">
+          <h3>Total Tracked Time</h3>
+          <p id="totalTime">00:00:00</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Total Sessions</h3>
+          <p id="totalSessions">0</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Average Session</h3>
+          <p id="avgSession">00:00:00</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Longest Session</h3>
+          <p id="longestSession">00:00:00</p>
+        </div>
+        <div class="dashboard-card" style="grid-column: span 2;">
+          <h3>Active Days (Last 7)</h3>
+          <p id="activeDays">0 days</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
           window.APP_CONFIG = window.APP_CONFIG || { API_BASE: '' };
           const API_BASE = window.APP_CONFIG.API_BASE || ((location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '');
@@ -158,9 +206,21 @@
           if(new URLSearchParams(location.search).get('token')){ showAuthForm('reset'); }
 
           function loadLocalSessions(){ try{ const stored = JSON.parse(localStorage.getItem('sessions')||'[]'); localStorage.setItem('sessions', JSON.stringify(stored)); renderSessions(); }catch(e){ renderSessions(); } }
-          function loadSessionsIfSigned(force=false){ if(!isSignedIn()) return; apiFetch('/sessions').then(rows=>{ if(Array.isArray(rows)){ localStorage.setItem('sessions', JSON.stringify(rows)); renderSessions(); if(force) renderProfile(); } }).catch(e=>{ console.warn('Failed to load sessions', e); if(!force) renderSessions(); }); }
+          function loadSessionsIfSigned(force=false){ if(!isSignedIn()) return; apiFetch('/sessions').then(rows=>{ if(Array.isArray(rows)){ localStorage.setItem('sessions', JSON.stringify(rows)); renderSessions(); if(force) renderProfile(); if(activeTab === 'dashboard') renderDashboard(); } }).catch(e=>{ console.warn('Failed to load sessions', e); if(!force) renderSessions(); }); }
 
+          function showTab(tab){ const tracker = document.getElementById('trackerContainer'); const dashboard = document.getElementById('dashboardContainer'); const trackerBtn = document.getElementById('tabTracker'); const dashboardBtn = document.getElementById('tabDashboard'); if(tab==='dashboard'){ tracker.style.display='none'; dashboard.style.display='block'; trackerBtn.classList.remove('active'); dashboardBtn.classList.add('active'); renderDashboard(); } else { tracker.style.display='block'; dashboard.style.display='none'; trackerBtn.classList.add('active'); dashboardBtn.classList.remove('active'); } activeTab = tab; }
+
+          function formatTime(totalSeconds){ const h=Math.floor(totalSeconds/3600); const m=Math.floor((totalSeconds%3600)/60); const s=totalSeconds%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+
+          function parseSessionTime(session){ const parts = (session.duration||'00:00:00').split(':').map(x=>parseInt(x,10)||0); return parts[0]*3600 + parts[1]*60 + parts[2]; }
+          function calculateActiveDays(sessions){ const daySet = new Set(); const now = new Date(); const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate()-6);
+            sessions.forEach(s=>{ const d = new Date(s.time); if(!isNaN(d.getTime()) && d >= sevenDaysAgo){ daySet.add(d.toDateString()); } }); return daySet.size; }
+          function renderDashboard(){ const sessions = getSessions(); const totalSeconds = sessions.reduce((sum,s)=> sum + parseSessionTime(s), 0); const count = sessions.length; const avgSeconds = count ? Math.round(totalSeconds / count) : 0; const longestSeconds = sessions.reduce((max,s)=> Math.max(max, parseSessionTime(s)), 0); document.getElementById('totalTime').textContent = formatTime(totalSeconds); document.getElementById('totalSessions').textContent = count; document.getElementById('avgSession').textContent = formatTime(avgSeconds); document.getElementById('longestSession').textContent = formatTime(longestSeconds); document.getElementById('activeDays').textContent = calculateActiveDays(sessions) + ' days'; }
+
+          let activeTab = 'tracker';
           updateAuthUI(); renderProfile(); loadSessionsIfSigned();
+          document.getElementById('tabTracker').addEventListener('click', ()=> showTab('tracker'));
+          document.getElementById('tabDashboard').addEventListener('click', ()=> showTab('dashboard'));
           let timerId = null; let seconds = 0; let running = false;
           const timerLabel = document.getElementById('timer');
           const startStopButton = document.getElementById('startStop');
@@ -179,8 +239,6 @@
           ];
 
           const blacklist = ['sex','porn','illegal','drugs','weapon','crime'];
-
-          function formatTime(totalSeconds){ const h=Math.floor(totalSeconds/3600); const m=Math.floor((totalSeconds%3600)/60); const s=totalSeconds%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
 
           function getSessions(){ try{ return JSON.parse(localStorage.getItem('sessions')||'[]'); }catch(e){ return []; } }
           function saveSessions(s){ localStorage.setItem('sessions', JSON.stringify(s)); }
